@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Анимированный Таймер</title>
+    <style>
+      body {
+        background-color: #87ceeb; /* общий фон синего цвета */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        position: relative;
+        width: 200px;
+        height: 200px;
+      }
+      .timer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: "Arial", sans-serif;
+        font-size: 2em;
+        z-index: 2; /* Убедитесь, что таймер находится над кругом */
+      }
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1; /* Канвас будет под таймером */
+      }
+      .button-wrapper {
+        margin-top: 200px; /* Move button below the circle */
+        text-align: center;
+      }
+      .button {
+        display: inline-block;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4caf50;
+        color: #fff;
+        cursor: pointer;
+      }
+      .button:hover {
+        background-color: #3e8e41;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <canvas id="canvas" width="200" height="200"></canvas>
+      <div class="timer" id="timer">00:00</div>
+      <div class="button-wrapper">
+        <button class="button" id="start-button">Start</button>
+        <button class="button" id="stop-button" style="display: none">
+          Stop
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Получаем элементы таймера и канваса
+      const timerElement = document.getElementById("timer");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Определяем константы для радиуса и угла круга
+      const endAngle = Math.PI * 2;
+      const radius = canvas.width / 2 - 10; // радиус круга
+
+      // Определяем время таймера в секундах (5 минут)
+      let totalTime = 5 * 60;
+      let startTime = null;
+      let isRunning = false;
+
+      // Функция обновления таймера
+      function updateTimer() {
+        // Если таймер не запущен, выходим из функции
+        if (!isRunning) return;
+
+        // Вычисляем время, прошедшее с начала запуска таймера
+        let elapsedTime = (Date.now() - startTime) / 1000;
+        let remainingTime = totalTime - elapsedTime;
+
+        // Если время таймера истекло, останавливаем таймер
+        if (remainingTime <= 0) {
+          timerElement.textContent = "00:00";
+          isRunning = false;
+          document.getElementById("start-button").style.display =
+            "inline-block";
+          document.getElementById("stop-button").style.display = "none";
+          return;
+        }
+
+        // Вычисляем минуты и секунды, оставшиеся до конца таймера
+        let minutes = Math.floor(remainingTime / 60);
+        let seconds = Math.floor(remainingTime % 60);
+
+        // Обновляем текст таймера
+        timerElement.textContent = `${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+        // Вычисляем прогресс таймера
+        let progress = elapsedTime / totalTime;
+
+        // Рисуем белый круг
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width / 2,
+          canvas.height / 2,
+          radius,
+          -Math.PI / 2,
+          endAngle - Math.PI / 2,
+          false
+        );
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        // Рисуем красный круг, заполняющий белый круг
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width / 2,
+          canvas.height / 2,
+          radius,
+          -Math.PI / 2,
+          endAngle * progress - Math.PI / 2,
+          false
+        );
+        ctx.strokeStyle = "red"; // Красный цвет заполнения круга
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        // Запускаем следующий кадр анимации
+        requestAnimationFrame(updateTimer);
+      }
+
+      // Добавляем обработчик события клика на кнопку "Start"
+      document.getElementById("start-button").addEventListener("click", () => {
+        // Если таймер не запущен, запускаем его
+        if (!isRunning) {
+          isRunning = true;
+          startTime = Date.now();
+          updateTimer();
+          document.getElementById("start-button").style.display = "none";
+          document.getElementById("stop-button").style.display = "inline-block";
+        }
+      });
+
+      // Добавляем обработчик события клика на кнопку "Stop"
+      document.getElementById("stop-button").addEventListener("click", () => {
+        // Останавливаем таймер
+        isRunning = false;
+        document.getElementById("start-button").style.display = "inline-block";
+        document.getElementById("stop-button").style.display = "none";
+      });
+    </script>
+  </body>
+</html>
